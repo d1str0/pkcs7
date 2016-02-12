@@ -54,7 +54,10 @@ var padTests = []testVector{
 
 func TestPad(t *testing.T) {
 	for i, v := range padTests {
-		o := Pad(v.input, v.blockSize)
+		o, err := Pad(v.input, v.blockSize)
+		if err != nil {
+			t.Errorf("Padding caused error: %v", err)
+		}
 		if !bytes.Equal(o, v.output) {
 			t.Errorf("Pad %d: expected %x, got %x", i, v.output, o)
 		}
