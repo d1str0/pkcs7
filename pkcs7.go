@@ -56,6 +56,12 @@ func Unpad(src []byte) ([]byte, error) {
 	// Get the last byte so we know how many bytes to take off the end.
 	padLen := int(src[length-1])
 
+	// If the last byte is 0x00, we have invalid padding. We try to fuzz a bit
+	// the error message, sending the same one as when the padding is incorrect.
+	if padLen == 0x00 {
+		return nil, errors.New("pkcs7: invalid padding (last byte does not match padding)")
+	}
+
 	// If the last byte is more than the total length, this is invalid.
 	if padLen > length {
 		return nil, errors.New("pkcs7: invalid padding (last byte is larger than total length)")
