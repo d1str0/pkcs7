@@ -74,7 +74,7 @@ var padTests = []testVector{
 		4,
 		nil,
 		[]byte{0x01, 0x02, 0x03, 0x00},
-		"pkcs7: invalid padding (last byte does not match padding)",
+		"pkcs7: invalid padding",
 	},
 }
 

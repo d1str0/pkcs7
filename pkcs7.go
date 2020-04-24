@@ -16,6 +16,12 @@ import (
 	"errors"
 )
 
+var (
+	ErrInvalidBlockSize = errors.New("pkcs7: block size must be between 1 and 255 inclusive")
+	ErrEmptySlice       = errors.New("pkcs7: source must not be empty slice")
+	ErrInvalidPadding   = errors.New("pkcs7: invalid padding")
+)
+
 // Pad takes a source byte slice and a block size. It will determine the needed
 // amount of padding, n, and appends byte(n) to the source n times.
 //
@@ -26,7 +32,7 @@ import (
 func Pad(src []byte, blockSize int) ([]byte, error) {
 	// Only allow 1-255 sized blocks as per standard.
 	if blockSize < 1 || blockSize > 255 {
-		return nil, errors.New("pkcs7: block size must be between 1 and 255 inclusive")
+		return nil, ErrInvalidBlockSize
 	}
 
 	// Calculate length of needed padding by taking the goal block size and
@@ -50,7 +56,7 @@ func Unpad(src []byte) ([]byte, error) {
 
 	// If the source is empty it's already invalid.
 	if length <= 0 {
-		return nil, errors.New("pkcs7: source must not be empty slice")
+		return nil, ErrEmptySlice
 	}
 
 	// Get the last byte so we know how many bytes to take off the end.
@@ -59,12 +65,12 @@ func Unpad(src []byte) ([]byte, error) {
 	// If the last byte is 0x00, we have invalid padding. We try to fuzz a bit
 	// the error message, sending the same one as when the padding is incorrect.
 	if padLen == 0x00 {
-		return nil, errors.New("pkcs7: invalid padding (last byte does not match padding)")
+		return nil, ErrInvalidPadding
 	}
 
 	// If the last byte is more than the total length, this is invalid.
 	if padLen > length {
-		return nil, errors.New("pkcs7: invalid padding (last byte is larger than total length)")
+		return nil, ErrInvalidPadding
 	}
 
 	// Get original source length assumed based on last byte.
@@ -77,7 +83,7 @@ func Unpad(src []byte) ([]byte, error) {
 	for i := 0; i < padLen; i++ {
 		// Make sure all bytes match.
 		if padding[i] != byte(padLen) {
-			return nil, errors.New("pkcs7: invalid padding (last byte does not match padding)")
+			return nil, ErrInvalidPadding
 		}
 	}
 
